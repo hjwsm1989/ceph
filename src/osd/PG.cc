@@ -3508,7 +3508,15 @@ void PG::replica_scrub(
  */
 void PG::scrub(ThreadPool::TPHandle &handle)
 {
-  lock();
+  if (g_conf->osd_scrub_sleep > 0) {
+    utime_t t;
+    t.set_from_double(g_conf->osd_scrub_sleep);
+    t.sleep();
+    lock();
+    dout(20) << __func__ << " slept for " << t << dendl;
+  } else {
+    lock();
+  }
   if (deleting) {
     unlock();
     return;
